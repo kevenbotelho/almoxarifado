@@ -199,23 +199,49 @@
 
         <!-- Movimentações -->
         <section id="movimentacoes" class="hidden">
-            <h2 class="text-2xl font-bold mb-4">Movimentações</h2>
-            <form id="formMovimentacao" class="bg-white p-4 rounded shadow mb-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <select id="produtoMov" class="border p-2" required>
-                        <option value="">Selecione Produto</option>
-                    </select>
-                    <input type="number" id="quantidadeMov" placeholder="Quantidade" class="border p-2" required>
-                    <select id="tipoMov" class="border p-2" required>
-                        <option value="entrada">Entrada</option>
-                        <option value="saida">Saída</option>
-                    </select>
-                    <input type="text" id="motivoMov" placeholder="Motivo" class="border p-2" required>
-                    <input type="text" id="documentoMov" placeholder="Documento" class="border p-2">
-                    <input type="text" id="usuarioMov" placeholder="Usuário" class="border p-2" required>
-                </div>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Registrar</button>
-            </form>
+            <h2 class="text-2xl font-bold mb-6">Movimentações</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-exchange-alt mr-2 text-blue-500"></i>Registrar Movimentação
+                </h3>
+                <form id="formMovimentacao" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Produto</label>
+                            <select id="produtoMov" class="border p-3 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="">Selecione Produto</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
+                            <input type="number" id="quantidadeMov" placeholder="Quantidade" min="1" step="1" class="border p-3 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                    </div>
+                    <p id="quantidadeDisponivel" class="text-sm text-blue-600 font-medium bg-blue-50 p-2 rounded">Selecione um produto para ver a quantidade disponível.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                            <select id="tipoMov" class="border p-3 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="entrada">Entrada</option>
+                                <option value="saida">Saída</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+                            <input type="text" id="motivoMov" placeholder="Motivo" class="border p-3 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Documento</label>
+                            <input type="text" id="documentoMov" placeholder="Documento" class="border p-3 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Usuário</label>
+                            <input type="text" id="usuarioMov" placeholder="Usuário" class="border p-3 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition-colors font-medium">Registrar Movimentação</button>
+                </form>
+            </div>
         </section>
 
         <!-- Histórico -->
@@ -242,10 +268,38 @@
 
         <!-- Relatórios -->
         <section id="relatorios" class="hidden">
-            <h2 class="text-2xl font-bold mb-4">Relatórios</h2>
-            <button id="btnRelInventario" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">Inventário Atual</button>
-            <button id="btnRelBaixoEstoque" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">Itens Baixo Estoque</button>
-            <button id="btnRelMovimentacoes" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">Movimentações por Período</button>
+            <h2 class="text-2xl font-bold mb-6">Relatórios</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+                    <h4 class="font-semibold text-blue-700 mb-2 flex items-center">
+                        <i class="fas fa-boxes mr-2"></i>Inventário Atual
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4">Relatório completo de todos os produtos em estoque com quantidades e localizações.</p>
+                    <button id="btnRelInventario" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">Gerar Relatório</button>
+                </div>
+                <div class="bg-red-50 p-6 rounded-lg border-l-4 border-red-500 hover:shadow-lg transition-shadow">
+                    <h4 class="font-semibold text-red-700 mb-2 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Itens Baixo Estoque
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4">Lista de produtos que estão abaixo do estoque mínimo recomendado.</p>
+                    <button id="btnRelBaixoEstoque" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">Gerar Relatório</button>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-500 hover:shadow-lg transition-shadow md:col-span-2 lg:col-span-1">
+                    <h4 class="font-semibold text-green-700 mb-2 flex items-center">
+                        <i class="fas fa-exchange-alt mr-2"></i>Movimentações por Período
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4">Histórico de entradas e saídas de produtos em um período específico.</p>
+                    <div class="mb-3">
+                        <label class="block text-sm text-gray-700 mb-1">Data Inicial:</label>
+                        <input type="date" id="dataInicio" class="border p-2 rounded w-full">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-700 mb-1">Data Final:</label>
+                        <input type="date" id="dataFim" class="border p-2 rounded w-full">
+                    </div>
+                    <button id="btnRelMovimentacoes" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">Gerar Relatório</button>
+                </div>
+            </div>
         </section>
 
         <!-- Configurações -->
@@ -298,7 +352,8 @@
                         <label>ID/Código:</label>
                         <input type="text" id="idProduto" readonly class="border p-2 w-full mb-2 bg-gray-100">
                     </div>
-                    <input type="text" id="nomeProduto" placeholder="Nome" class="border p-2 w-full mb-2" required>
+                    <input type="text" id="nomeProduto" placeholder="Nome" list="produtosList" class="border p-2 w-full mb-2" required>
+                    <datalist id="produtosList"></datalist>
                     <input type="text" id="categoriaProduto" placeholder="Categoria" class="border p-2 w-full mb-2" required>
                     <input type="text" id="localProduto" placeholder="Localização" class="border p-2 w-full mb-2" required>
                     <input type="number" id="quantidadeProduto" placeholder="Quantidade" class="border p-2 w-full mb-2" required>

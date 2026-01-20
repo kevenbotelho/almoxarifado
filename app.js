@@ -67,6 +67,23 @@ function atualizarDashboard() {
     const alertasDiv = document.getElementById('alertas');
     alertasDiv.innerHTML = alertas.length ? `<ul>${alertas.map(p => `<li>${p.nome} - Quantidade: ${p.quantidade}</li>`).join('')}</ul>` : '<p>Nenhum alerta.</p>';
 
+    // Notificações de baixo estoque
+    if (alertas.length > 0) {
+        const lastNotified = localStorage.getItem('lastLowStockNotification');
+        const now = Date.now();
+        if (!lastNotified || (now - parseInt(lastNotified)) > 24 * 60 * 60 * 1000) { // 24 horas
+            Toastify({
+                text: `Alerta: ${alertas.length} produto(s) com estoque baixo - ${alertas.map(p => p.nome).join(', ')}`,
+                backgroundColor: "red",
+                duration: 10000,
+                position: "top-right",
+                close: true,
+                onClick: () => mostrarSecao('produtos')
+            }).showToast();
+            localStorage.setItem('lastLowStockNotification', now.toString());
+        }
+    }
+
     // Gráfico de categorias
     renderChartCategoria();
 }
@@ -340,21 +357,28 @@ document.getElementById('btnRelBaixoEstoque').addEventListener('click', () => {
 });
 
 document.getElementById('btnRelMovimentacoes').addEventListener('click', () => {
-    const periodo = prompt('Período (YYYY-MM-DD a YYYY-MM-DD):');
-    if (!periodo) return;
-    const [inicio, fim] = periodo.split(' a ');
+    const inicio = document.getElementById('dataInicio').value;
+    const fim = document.getElementById('dataFim').value;
+    if (!inicio || !fim) {
+        Toastify({ text: "Selecione as datas inicial e final!", backgroundColor: "red", duration: 3000 }).showToast();
+        return;
+    }
     const filtrados = movimentacoes.filter(m => m.data >= inicio && m.data <= fim + 'T23:59:59Z');
+    const periodo = `${inicio} a ${fim}`;
     const win = window.open('', '_blank');
     win.document.write(`
-        <h1>Movimentações ${periodo}</h1>
-        <table border="1" style="border-collapse: collapse;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1>Diamond Service - Almoxarifado</h1>
+            <h2>Movimentações ${periodo}</h2>
+        </div>
+        <table border="1" style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr><th style="padding: 2px;">ID</th><th style="padding: 2px;">Produto</th><th style="padding: 2px;">Tipo</th><th style="padding: 2px;">Quantidade</th><th style="padding: 2px;">Data</th></tr>
+                <tr><th style="padding: 5px;">ID</th><th style="padding: 5px;">Produto</th><th style="padding: 5px;">Tipo</th><th style="padding: 5px;">Quantidade</th><th style="padding: 5px;">Motivo</th><th style="padding: 5px;">Documento</th><th style="padding: 5px;">Usuário</th><th style="padding: 5px;">Data</th></tr>
             </thead>
             <tbody>
                 ${filtrados.map(m => {
                     const produto = produtos.find(p => p.id === m.produto_id);
-                    return `<tr><td style="padding: 2px;">${m.id}</td><td style="padding: 2px;">${produto ? produto.nome : ''}</td><td style="padding: 2px;">${m.tipo}</td><td style="padding: 2px;">${m.quantidade}</td><td style="padding: 2px;">${new Date(m.data).toLocaleDateString()}</td></tr>`;
+                    return `<tr><td style="padding: 5px;">${m.id}</td><td style="padding: 5px;">${produto ? produto.nome : ''}</td><td style="padding: 5px;">${m.tipo}</td><td style="padding: 5px;">${m.quantidade}</td><td style="padding: 5px;">${m.motivo}</td><td style="padding: 5px;">${m.documento}</td><td style="padding: 5px;">${m.usuario}</td><td style="padding: 5px;">${new Date(m.data).toLocaleDateString()}</td></tr>`;
                 }).join('')}
             </tbody>
         </table>
@@ -444,6 +468,9 @@ document.getElementById('btnToggleTheme').addEventListener('click', () => {
 document.getElementById('btnNovoProduto').addEventListener('click', () => {
     document.getElementById('formProduto').reset();
     document.getElementById('campoId').classList.add('hidden');
+    // Populate datalist with existing product names
+    const datalist = document.getElementById('produtosList');
+    datalist.innerHTML = produtos.map(p => `<option value="${p.nome}">`).join('');
     document.getElementById('modalProduto').classList.remove('hidden');
 });
 
@@ -512,6 +539,17 @@ document.getElementById('formProduto').addEventListener('submit', (e) => {
 document.getElementById('buscaProduto').addEventListener('input', renderProdutos);
 
 // Inicializar
+// Event listener para mostrar quantidade disponível
+document.getElementById('produtoMov').addEventListener('change', (e) => {
+    const id = e.target.value;
+    const produto = produtos.find(p => p.id === id);
+    if (produto) {
+        document.getElementById('quantidadeDisponivel').textContent = `Quantidade disponível: ${produto.quantidade}`;
+    } else {
+        document.getElementById('quantidadeDisponivel').textContent = 'Selecione um produto para ver a quantidade disponível.';
+    }
+});
+
 function init() {
     atualizarSelectProdutos();
 
@@ -561,6 +599,18 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Solicitar permissão para notificações
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log('Permissão para notificações concedida');
+            }
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     carregarDados(init);
+    requestNotificationPermission();
 });
