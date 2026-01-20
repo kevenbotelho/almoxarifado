@@ -51,6 +51,15 @@
         .dark .bg-gray-500 {
             background-color: #718096;
         }
+        .dark .bg-blue-50 {
+            background-color: #1e3a5f;
+        }
+        .dark .bg-green-50 {
+            background-color: #1e4620;
+        }
+        .dark .bg-red-50 {
+            background-color: #4b1c1c;
+        }
         .dark .text-red-600 {
             color: #fc8181;
         }
@@ -65,6 +74,15 @@
         }
         .dark .text-green-500 {
             color: #68d391;
+        }
+        .dark .text-blue-700 {
+            color: #63b3ed;
+        }
+        .dark .text-green-700 {
+            color: #68d391;
+        }
+        .dark .text-red-700 {
+            color: #fc8181;
         }
         #menuDropdown {
             transition: all 0.3s ease-in-out;
@@ -146,15 +164,9 @@
             <div id="alertas" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
                 <p>Alertas de baixo estoque aparecerão aqui.</p>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-lg font-semibold mb-4">Quantidade por Produto</h3>
-                    <canvas id="chartCategoria" style="width:100%; height:300px;"></canvas>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-lg font-semibold mb-4">Movimentações por Tipo</h3>
-                    <canvas id="chartMovimentacoes" style="width:100%; height:300px;"></canvas>
-                </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Quantidade por Produto</h3>
+                <canvas id="chartCategoria" style="width:100%; height:300px;"></canvas>
             </div>
         </section>
 
@@ -251,11 +263,30 @@
                 <input type="text" id="moeda" value="R$" class="border p-2 mb-4">
             </div>
             <div class="bg-white p-4 rounded shadow">
-                <h3 class="text-lg font-semibold mb-2">Backup</h3>
-                <button id="btnBackup" class="bg-blue-500 text-white px-4 py-2 rounded mr-4">Exportar</button>
-                <input type="file" id="btnRestore" accept=".json" class="border p-2">
-                <label class="ml-2">Importar</label>
-                <button id="btnLimparDados" class="bg-red-500 text-white px-4 py-2 rounded ml-4">Excluir Todos os Dados</button>
+                <h3 class="text-lg font-semibold mb-4">Backup e Restauração</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                        <h4 class="font-semibold text-blue-700 mb-2 flex items-center">
+                            <i class="fas fa-download mr-2"></i>Exportar Dados
+                        </h4>
+                        <p class="text-sm text-gray-600 mb-3">Baixe um arquivo JSON com todos os seus dados para backup.</p>
+                        <button id="btnBackup" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">Exportar</button>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded border-l-4 border-green-500">
+                        <h4 class="font-semibold text-green-700 mb-2 flex items-center">
+                            <i class="fas fa-upload mr-2"></i>Importar Dados
+                        </h4>
+                        <p class="text-sm text-gray-600 mb-3">Carregue um arquivo JSON para restaurar dados previamente salvos.</p>
+                        <input type="file" id="btnRestore" accept=".json" class="border p-2 w-full rounded">
+                    </div>
+                </div>
+                <div class="bg-red-50 p-4 rounded border-l-4 border-red-500">
+                    <h4 class="font-semibold text-red-700 mb-2 flex items-center">
+                        <i class="fas fa-trash mr-2"></i>Limpar Dados
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-3">Exclua permanentemente todos os dados. Esta ação não pode ser desfeita.</p>
+                    <button id="btnLimparDados" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">Excluir Tudo</button>
+                </div>
             </div>
         </section>
         <!-- Modal para Produto -->

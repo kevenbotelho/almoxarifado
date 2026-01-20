@@ -69,13 +69,9 @@ function atualizarDashboard() {
 
     // Gráfico de categorias
     renderChartCategoria();
-
-    // Gráfico de movimentações
-    renderChartMovimentacoes();
 }
 
 let chartCategoria = null;
-let chartMovimentacoes = null;
 
 function renderChartCategoria() {
     const labels = produtos.map(p => p.nome);
@@ -111,43 +107,7 @@ function renderChartCategoria() {
     });
 }
 
-function renderChartMovimentacoes() {
-    const tipos = {};
-    movimentacoes.forEach(m => {
-        tipos[m.tipo] = (tipos[m.tipo] || 0) + m.quantidade;
-    });
-    const labels = Object.keys(tipos).map(t => t === 'entrada' ? 'Entradas' : 'Saídas');
-    const data = Object.values(tipos);
 
-    const ctx = document.getElementById('chartMovimentacoes').getContext('2d');
-
-    // Destruir gráfico anterior se existir
-    if (chartMovimentacoes) {
-        chartMovimentacoes.destroy();
-    }
-
-    chartMovimentacoes = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(255, 99, 132, 0.6)'
-                ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(255, 99, 132, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true
-        }
-    });
-}
 
 // Produtos
 function renderProdutos() {
@@ -491,19 +451,10 @@ document.getElementById('btnPlanilha').addEventListener('click', () => {
     fetch('https://script.google.com/macros/s/AKfycbzj4vXz9v4hya2oD_BVKn7-aUXfpmCqbWwiRq9B1IkTLIzd1FT1CRZtwyIDZ62fT309/exec', {
         method: 'POST',
         body: JSON.stringify(produtos),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors'
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('HTTP error! status: ' + response.status);
-        }
-        return response.text();
-    })
-    .then(data => {
-        console.log('Sync response:', data);
-        if (data.startsWith('Error:')) {
-            throw new Error(data);
-        }
+    .then(() => {
         Toastify({ text: "Planilha sincronizada!", backgroundColor: "green", duration: 3000 }).showToast();
         window.open('https://docs.google.com/spreadsheets/d/16H9kSlusFPymXwCsC5qFSFV2TGb1Wqp5dBsWJG6Q4So/edit?gid=0#gid=0', '_blank');
     })
