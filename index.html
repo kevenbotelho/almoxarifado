@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Almoxarifado</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .dark { background-color: #1a202c; color: #e2e8f0; }
         .dark .bg-white { background-color: #2d3748; color: #e2e8f0; }
@@ -48,6 +50,21 @@
         }
         .dark .bg-gray-500 {
             background-color: #718096;
+        }
+        .dark .text-red-600 {
+            color: #fc8181;
+        }
+        .dark .text-green-600 {
+            color: #68d391;
+        }
+        .dark .text-blue-500 {
+            color: #63b3ed;
+        }
+        .dark .text-red-500 {
+            color: #fc8181;
+        }
+        .dark .text-green-500 {
+            color: #68d391;
         }
         #menuDropdown {
             transition: all 0.3s ease-in-out;
@@ -102,27 +119,42 @@
     <main class="container mx-auto p-4">
         <!-- Dashboard -->
         <section id="dashboard" class="hidden">
-            <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div class="bg-white p-4 rounded shadow cursor-pointer hover:bg-gray-50" onclick="mostrarSecao('produtos')">
-                    <h3 class="text-lg font-semibold">Total de Itens</h3>
-                    <p id="totalItens" class="text-2xl">0</p>
+            <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow flex items-center" onclick="mostrarSecao('produtos')">
+                    <i class="fas fa-boxes text-4xl mr-4"></i>
+                    <div>
+                        <h3 class="text-xl font-semibold">Total de Itens</h3>
+                        <p id="totalItens" class="text-3xl font-bold">0</p>
+                    </div>
                 </div>
-                <div class="bg-white p-4 rounded shadow cursor-pointer hover:bg-gray-50" onclick="btnRelBaixoEstoque.click()">
-                    <h3 class="text-lg font-semibold">Itens Baixo Estoque</h3>
-                    <p id="baixoEstoque" class="text-2xl text-red-600">0</p>
+                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow flex items-center" onclick="btnRelBaixoEstoque.click()">
+                    <i class="fas fa-exclamation-triangle text-4xl mr-4"></i>
+                    <div>
+                        <h3 class="text-xl font-semibold">Itens Baixo Estoque</h3>
+                        <p id="baixoEstoque" class="text-3xl font-bold">0</p>
+                    </div>
                 </div>
-                <div class="bg-white p-4 rounded shadow">
-                    <h3 class="text-lg font-semibold">Entradas Recentes</h3>
-                    <p id="entradasRecentes" class="text-2xl">0</p>
-                </div>
-                <div class="bg-white p-4 rounded shadow">
-                    <h3 class="text-lg font-semibold">Valor Estimado</h3>
-                    <p id="valorEstimado" class="text-2xl">R$ 0,00</p>
+                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-6 rounded-lg shadow-lg flex items-center">
+                    <i class="fas fa-dollar-sign text-4xl mr-4"></i>
+                    <div>
+                        <h3 class="text-xl font-semibold">Valor Estimado</h3>
+                        <p id="valorEstimado" class="text-3xl font-bold">R$ 0,00</p>
+                    </div>
                 </div>
             </div>
-            <div id="alertas" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+            <div id="alertas" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
                 <p>Alertas de baixo estoque aparecerão aqui.</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Quantidade por Produto</h3>
+                    <canvas id="chartCategoria" style="width:100%; height:300px;"></canvas>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Movimentações por Tipo</h3>
+                    <canvas id="chartMovimentacoes" style="width:100%; height:300px;"></canvas>
+                </div>
             </div>
         </section>
 
@@ -130,6 +162,7 @@
         <section id="produtos" class="hidden">
             <h2 class="text-2xl font-bold mb-4">Produtos</h2>
             <button id="btnNovoProduto" class="bg-green-500 text-white px-4 py-2 rounded mb-4">Novo Produto</button>
+            <button id="btnPlanilha" class="bg-blue-500 text-white px-4 py-2 rounded mb-4 ml-4">Planilha</button>
             <input type="text" id="buscaProduto" placeholder="Buscar por nome ou código" class="border p-2 mb-4 w-full">
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white shadow rounded">
@@ -175,25 +208,19 @@
 
         <!-- Histórico -->
         <section id="historico" class="hidden">
-            <h2 class="text-2xl font-bold mb-4">Histórico de Movimentações</h2>
-            <input type="date" id="filtroData" class="border p-2 mb-4">
-            <select id="filtroTipo" class="border p-2 mb-4">
-                <option value="">Todos</option>
-                <option value="entrada">Entrada</option>
-                <option value="saida">Saída</option>
-            </select>
+            <h2 class="text-2xl font-bold mb-4">Histórico de Produtos Cadastrados</h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white shadow rounded">
                     <thead>
                         <tr class="bg-gray-200">
                             <th class="px-4 py-2">ID</th>
-                            <th class="px-4 py-2">Produto</th>
-                            <th class="px-4 py-2">Tipo</th>
+                            <th class="px-4 py-2">Nome</th>
+                            <th class="px-4 py-2">Categoria</th>
                             <th class="px-4 py-2">Quantidade</th>
-                            <th class="px-4 py-2">Motivo</th>
-                            <th class="px-4 py-2">Documento</th>
-                            <th class="px-4 py-2">Usuário</th>
-                            <th class="px-4 py-2">Data</th>
+                            <th class="px-4 py-2">Unidade</th>
+                            <th class="px-4 py-2">Fornecedor</th>
+                            <th class="px-4 py-2">Preço Unitário</th>
+                            <th class="px-4 py-2">Localização</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaHistorico"></tbody>

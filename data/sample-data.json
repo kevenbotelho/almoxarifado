@@ -1,40 +1,4 @@
 {
-  "produtos": [
-    {
-      "id": "P001",
-      "nome": "Parafuso 4x20",
-      "categoria": "Ferragens",
-      "local": "A1",
-      "quantidade": 120,
-      "unidade": "un",
-      "estoque_minimo": 30,
-      "fornecedor": "Fornecedor X",
-      "preco_unitario": 0.15,
-      "descricao": "Pacote com 100 unidades"
-    },
-    {
-      "id": "P002",
-      "nome": "Martelo",
-      "categoria": "Ferramentas",
-      "local": "B2",
-      "quantidade": 15,
-      "unidade": "un",
-      "estoque_minimo": 5,
-      "fornecedor": "Fornecedor Y",
-      "preco_unitario": 25.00,
-      "descricao": "Martelo de ferro"
-    }
-  ],
-  "movimentacoes": [
-    {
-      "id": "M0001",
-      "produto_id": "P001",
-      "tipo": "entrada",
-      "quantidade": 50,
-      "motivo": "Compra inicial",
-      "documento": "NF-001",
-      "usuario": "Admin",
-      "data": "2026-01-18T10:00:00Z"
-    }
-  ]
+  "produtos": [],
+  "movimentacoes": []
 }

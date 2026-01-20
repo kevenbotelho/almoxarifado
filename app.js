@@ -57,17 +57,96 @@ function mostrarSecao(secao) {
 function atualizarDashboard() {
     const totalItens = produtos.reduce((sum, p) => sum + p.quantidade, 0);
     const baixoEstoque = produtos.filter(p => p.quantidade <= p.estoque_minimo).length;
-    const entradasRecentes = movimentacoes.filter(m => m.tipo === 'entrada' && new Date(m.data) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length;
     const valorEstimado = config.calcularValor ? produtos.reduce((sum, p) => sum + (p.quantidade * (p.preco_unitario || 0)), 0).toFixed(2) : 0;
 
     document.getElementById('totalItens').textContent = totalItens;
     document.getElementById('baixoEstoque').textContent = baixoEstoque;
-    document.getElementById('entradasRecentes').textContent = entradasRecentes;
     document.getElementById('valorEstimado').textContent = `${config.moeda} ${valorEstimado}`;
 
     const alertas = produtos.filter(p => p.quantidade <= p.estoque_minimo);
     const alertasDiv = document.getElementById('alertas');
     alertasDiv.innerHTML = alertas.length ? `<ul>${alertas.map(p => `<li>${p.nome} - Quantidade: ${p.quantidade}</li>`).join('')}</ul>` : '<p>Nenhum alerta.</p>';
+
+    // Gráfico de categorias
+    renderChartCategoria();
+
+    // Gráfico de movimentações
+    renderChartMovimentacoes();
+}
+
+let chartCategoria = null;
+let chartMovimentacoes = null;
+
+function renderChartCategoria() {
+    const labels = produtos.map(p => p.nome);
+    const data = produtos.map(p => p.quantidade);
+
+    const ctx = document.getElementById('chartCategoria').getContext('2d');
+
+    // Destruir gráfico anterior se existir
+    if (chartCategoria) {
+        chartCategoria.destroy();
+    }
+
+    chartCategoria = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Quantidade',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function renderChartMovimentacoes() {
+    const tipos = {};
+    movimentacoes.forEach(m => {
+        tipos[m.tipo] = (tipos[m.tipo] || 0) + m.quantidade;
+    });
+    const labels = Object.keys(tipos).map(t => t === 'entrada' ? 'Entradas' : 'Saídas');
+    const data = Object.values(tipos);
+
+    const ctx = document.getElementById('chartMovimentacoes').getContext('2d');
+
+    // Destruir gráfico anterior se existir
+    if (chartMovimentacoes) {
+        chartMovimentacoes.destroy();
+    }
+
+    chartMovimentacoes = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 99, 132, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
 }
 
 // Produtos
@@ -128,6 +207,8 @@ function deletarProduto(id) {
         produtos = produtos.filter(p => p.id !== id);
         salvarDados();
         renderProdutos();
+        atualizarDashboard();
+        if (!document.getElementById('historico').classList.contains('hidden')) renderHistorico();
         Toastify({ text: "Produto deletado!", backgroundColor: "green", duration: 3000, close: true }).showToast();
     }
 }
@@ -241,31 +322,21 @@ document.getElementById('formMovimentacao').addEventListener('submit', (e) => {
     atualizarDashboard();
 });
 
-// Histórico
+// Histórico de Produtos Cadastrados
 function renderHistorico() {
-    const filtroData = document.getElementById('filtroData').value;
-    const filtroTipo = document.getElementById('filtroTipo').value;
-    const filtrados = movimentacoes.filter(m => {
-        const dataMatch = !filtroData || m.data.startsWith(filtroData);
-        const tipoMatch = !filtroTipo || m.tipo === filtroTipo;
-        return dataMatch && tipoMatch;
-    });
     const tbody = document.getElementById('tabelaHistorico');
-    tbody.innerHTML = filtrados.map(m => {
-        const produto = produtos.find(p => p.id === m.produto_id);
-        return `
-            <tr>
-                <td class="px-4 py-2">${m.id}</td>
-                <td class="px-4 py-2">${produto ? produto.nome : 'Desconhecido'}</td>
-                <td class="px-4 py-2">${m.tipo}</td>
-                <td class="px-4 py-2">${m.quantidade}</td>
-                <td class="px-4 py-2">${m.motivo}</td>
-                <td class="px-4 py-2">${m.documento}</td>
-                <td class="px-4 py-2">${m.usuario}</td>
-                <td class="px-4 py-2">${new Date(m.data).toLocaleDateString(config.formatoData)}</td>
-            </tr>
-        `;
-    }).join('');
+    tbody.innerHTML = produtos.map(p => `
+        <tr>
+            <td class="px-4 py-2">${p.id}</td>
+            <td class="px-4 py-2">${p.nome}</td>
+            <td class="px-4 py-2">${p.categoria}</td>
+            <td class="px-4 py-2">${p.quantidade}</td>
+            <td class="px-4 py-2">${p.unidade}</td>
+            <td class="px-4 py-2">${p.fornecedor}</td>
+            <td class="px-4 py-2">${p.preco_unitario || ''}</td>
+            <td class="px-4 py-2">${p.local}</td>
+        </tr>
+    `).join('');
 }
 
 // Relatórios
@@ -416,6 +487,33 @@ document.getElementById('btnNovoProduto').addEventListener('click', () => {
     document.getElementById('modalProduto').classList.remove('hidden');
 });
 
+document.getElementById('btnPlanilha').addEventListener('click', () => {
+    fetch('https://script.google.com/macros/s/AKfycbzj4vXz9v4hya2oD_BVKn7-aUXfpmCqbWwiRq9B1IkTLIzd1FT1CRZtwyIDZ62fT309/exec', {
+        method: 'POST',
+        body: JSON.stringify(produtos),
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(data => {
+        console.log('Sync response:', data);
+        if (data.startsWith('Error:')) {
+            throw new Error(data);
+        }
+        Toastify({ text: "Planilha sincronizada!", backgroundColor: "green", duration: 3000 }).showToast();
+        window.open('https://docs.google.com/spreadsheets/d/16H9kSlusFPymXwCsC5qFSFV2TGb1Wqp5dBsWJG6Q4So/edit?gid=0#gid=0', '_blank');
+    })
+    .catch(error => {
+        console.error('Erro na sincronização:', error);
+        alert('Erro na sincronização: ' + error.message);
+        Toastify({ text: "Erro ao sincronizar planilha!", backgroundColor: "red", duration: 3000 }).showToast();
+    });
+});
+
 document.getElementById('btnFecharModal').addEventListener('click', () => {
     document.getElementById('modalProduto').classList.add('hidden');
 });
@@ -454,15 +552,13 @@ document.getElementById('formProduto').addEventListener('submit', (e) => {
     document.getElementById('modalProduto').classList.add('hidden');
     renderProdutos();
     atualizarSelectProdutos();
+    atualizarDashboard();
+    if (!document.getElementById('historico').classList.contains('hidden')) renderHistorico();
     Toastify({ text: "Produto salvo!", backgroundColor: "green", duration: 3000, close: true }).showToast();
 });
 
 // Busca
 document.getElementById('buscaProduto').addEventListener('input', renderProdutos);
-
-// Filtros histórico
-document.getElementById('filtroData').addEventListener('change', renderHistorico);
-document.getElementById('filtroTipo').addEventListener('change', renderHistorico);
 
 // Inicializar
 function init() {
