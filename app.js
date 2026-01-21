@@ -57,11 +57,12 @@ function mostrarSecao(secao) {
 function atualizarDashboard() {
     const totalItens = produtos.reduce((sum, p) => sum + p.quantidade, 0);
     const baixoEstoque = produtos.filter(p => p.quantidade <= p.estoque_minimo).length;
-    const valorEstimado = config.calcularValor ? produtos.reduce((sum, p) => sum + (p.quantidade * (p.preco_unitario || 0)), 0).toFixed(2) : 0;
+    const valorEstimado = config.calcularValor ? produtos.reduce((sum, p) => sum + (p.quantidade * (p.preco_unitario || 0)), 0).toFixed(2) : '0,00';
 
     document.getElementById('totalItens').textContent = totalItens;
     document.getElementById('baixoEstoque').textContent = baixoEstoque;
     document.getElementById('valorEstimado').textContent = `${config.moeda} ${valorEstimado}`;
+    document.getElementById('toggleValorEstimado').checked = config.calcularValor;
 
     const alertas = produtos.filter(p => p.quantidade <= p.estoque_minimo);
     const alertasDiv = document.getElementById('alertas');
@@ -321,7 +322,7 @@ document.getElementById('btnRelInventario').addEventListener('click', () => {
     const win = window.open('', '_blank');
     win.document.write(`
         <div style="text-align: center; margin-bottom: 20px;">
-            <h1>Diamond Service - Almoxarifado</h1>
+            <h1>Almoxarifado</h1>
             <h2>Inventário atual</h2>
         </div>
         <table border="1" style="width: 100%; border-collapse: collapse;">
@@ -341,7 +342,7 @@ document.getElementById('btnRelBaixoEstoque').addEventListener('click', () => {
     const win = window.open('', '_blank');
     win.document.write(`
         <div style="text-align: center; margin-bottom: 20px;">
-            <h1>Diamond Service - Almoxarifado</h1>
+            <h1>Almoxarifado</h1>
             <h2>Itens com baixo estoque</h2>
         </div>
         <table border="1" style="width: 100%; border-collapse: collapse;">
@@ -368,7 +369,7 @@ document.getElementById('btnRelMovimentacoes').addEventListener('click', () => {
     const win = window.open('', '_blank');
     win.document.write(`
         <div style="text-align: center; margin-bottom: 20px;">
-            <h1>Diamond Service - Almoxarifado</h1>
+            <h1>Almoxarifado</h1>
             <h2>Movimentações ${periodo}</h2>
         </div>
         <table border="1" style="width: 100%; border-collapse: collapse;">
@@ -609,6 +610,12 @@ function requestNotificationPermission() {
         });
     }
 }
+
+document.getElementById('toggleValorEstimado').addEventListener('change', (e) => {
+    config.calcularValor = e.target.checked;
+    salvarDados();
+    atualizarDashboard();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarDados(init);
